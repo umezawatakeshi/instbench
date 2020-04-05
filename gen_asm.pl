@@ -162,9 +162,9 @@ EOT
 	epilogue();
 }
 
-################ gen_nrr_2i ################
+################ gen_nrrr_2i ################
 
-sub gen_nrr_2i($$$) {
+sub gen_nrrr_2i($$$) {
 	my($inst, $label, $imm2) = @_;
 
 	prologue("$_[1]_tp");
@@ -550,8 +550,8 @@ gen_nxxx("vpaddb", "vpaddb_xmm");
 gen_nxx("pmovzxbw", "pmovzxbw_xmm");
 gen_nyx("vpmovzxbw", "vpmovzxbw_ymm");
 gen_nxxxx("vpblendvb", "vpblendvb_xmm");
-gen_nrr_2i("pext", "pext_all0", "0x0000000000000000");
-gen_nrr_2i("pext", "pext_all1", "0xffffffffffffffff");
-gen_nrr_2i("pext", "pext_half", "0x5555555555555555");
-gen_nrr_2i("pext", "pext_lo",   "0x00000000ffffffff");
-gen_nrr_2i("pext", "pext_hi",   "0xffffffff00000000");
+gen_nrrr_2i("pext", "pext_all0", "0x0000000000000000");
+gen_nrrr_2i("pext", "pext_all1", "0xffffffffffffffff");
+gen_nrrr_2i("pext", "pext_half", "0x5555555555555555");
+gen_nrrr_2i("pext", "pext_lo",   "0x00000000ffffffff");
+gen_nrrr_2i("pext", "pext_hi",   "0xffffffff00000000");
