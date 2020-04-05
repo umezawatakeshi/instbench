@@ -28,9 +28,6 @@ void $_[0](tsc_count_t* tc)
 	.intel_syntax noprefix
 
 	mov	rcx, $NLOOP
-	rdtsc
-	push rdx
-	push rax
 EOT
 }
 
@@ -38,12 +35,6 @@ sub epilogue() {
 	print <<EOT;
 	sub	rcx, 1
 	jnz	1b
-
-	rdtsc
-	pop	rcx
-	sub	eax, ecx
-	pop	rcx
-	sbb	edx, ecx
 	)"
 		: /* no output */
 		: /* no input */
