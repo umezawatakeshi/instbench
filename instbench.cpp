@@ -85,13 +85,14 @@ int main(int argc, char **argv)
 {
 	init_cycle_counter();
 
-	printf("instruction         tp   lt1   lt2\n");
-	printf("----------------------------------\n");
+	printf("instruction         tp   lt1   lt2   lt3\n");
+	printf("----------------------------------------\n");
 	BENCH2(add_r64);
 	BENCH2(paddb_xmm);
 	BENCH2(vpaddb_xmm);
 	BENCH1(pmovzxbw_xmm);
 	BENCH1(vpmovzxbw_ymm);
+	BENCH3(vpblendvb_xmm);
 	BENCH1(pext_all0);
 	BENCH1(pext_all1);
 	BENCH1(pext_half);

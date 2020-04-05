@@ -349,6 +349,84 @@ EOT
 	epilogue();
 }
 
+################ gen_nxxxx ################
+
+sub gen_nxxxx($$) {
+	my($inst, $label) = @_;
+
+	prologue("$_[1]_tp");
+	print <<EOT;
+1:
+.rept $NREP/10
+	$inst	xmm0, xmm15, xmm15, xmm15
+	$inst	xmm1, xmm15, xmm15, xmm15
+	$inst	xmm2, xmm15, xmm15, xmm15
+	$inst	xmm3, xmm15, xmm15, xmm15
+	$inst	xmm4, xmm15, xmm15, xmm15
+	$inst	xmm5, xmm15, xmm15, xmm15
+	$inst	xmm6, xmm15, xmm15, xmm15
+	$inst	xmm7, xmm15, xmm15, xmm15
+	$inst	xmm8, xmm15, xmm15, xmm15
+	$inst	xmm9, xmm15, xmm15, xmm15
+.endr
+EOT
+	epilogue();
+
+	prologue("$_[1]_lt1");
+	print <<EOT;
+1:
+.rept $NREP/10
+	$inst	xmm1, xmm0, xmm15, xmm15
+	$inst	xmm2, xmm1, xmm15, xmm15
+	$inst	xmm3, xmm2, xmm15, xmm15
+	$inst	xmm4, xmm3, xmm15, xmm15
+	$inst	xmm5, xmm4, xmm15, xmm15
+	$inst	xmm6, xmm5, xmm15, xmm15
+	$inst	xmm7, xmm6, xmm15, xmm15
+	$inst	xmm8, xmm7, xmm15, xmm15
+	$inst	xmm9, xmm8, xmm15, xmm15
+	$inst	xmm0, xmm9, xmm15, xmm15
+.endr
+EOT
+	epilogue();
+
+	prologue("$_[1]_lt2");
+	print <<EOT;
+1:
+.rept $NREP/10
+	$inst	xmm1, xmm15, xmm0, xmm15
+	$inst	xmm2, xmm15, xmm1, xmm15
+	$inst	xmm3, xmm15, xmm2, xmm15
+	$inst	xmm4, xmm15, xmm3, xmm15
+	$inst	xmm5, xmm15, xmm4, xmm15
+	$inst	xmm6, xmm15, xmm5, xmm15
+	$inst	xmm7, xmm15, xmm6, xmm15
+	$inst	xmm8, xmm15, xmm7, xmm15
+	$inst	xmm9, xmm15, xmm8, xmm15
+	$inst	xmm0, xmm15, xmm9, xmm15
+.endr
+EOT
+	epilogue();
+
+	prologue("$_[1]_lt3");
+	print <<EOT;
+1:
+.rept $NREP/10
+	$inst	xmm1, xmm15, xmm15, xmm0
+	$inst	xmm2, xmm15, xmm15, xmm1
+	$inst	xmm3, xmm15, xmm15, xmm2
+	$inst	xmm4, xmm15, xmm15, xmm3
+	$inst	xmm5, xmm15, xmm15, xmm4
+	$inst	xmm6, xmm15, xmm15, xmm5
+	$inst	xmm7, xmm15, xmm15, xmm6
+	$inst	xmm8, xmm15, xmm15, xmm7
+	$inst	xmm9, xmm15, xmm15, xmm8
+	$inst	xmm0, xmm15, xmm15, xmm9
+.endr
+EOT
+	epilogue();
+}
+
 ################ gen_nyy ################
 
 sub gen_nyy($$) {
@@ -471,6 +549,7 @@ gen_dxx("paddb", "paddb_xmm");
 gen_nxxx("vpaddb", "vpaddb_xmm");
 gen_nxx("pmovzxbw", "pmovzxbw_xmm");
 gen_nyx("vpmovzxbw", "vpmovzxbw_ymm");
+gen_nxxxx("vpblendvb", "vpblendvb_xmm");
 gen_nrr_2i("pext", "pext_all0", "0x0000000000000000");
 gen_nrr_2i("pext", "pext_all1", "0xffffffffffffffff");
 gen_nrr_2i("pext", "pext_half", "0x5555555555555555");
