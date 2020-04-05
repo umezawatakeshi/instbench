@@ -1,0 +1,4 @@
+instbench
+*.exe
+*.o
+asm.cpp
