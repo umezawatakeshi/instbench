@@ -4,6 +4,10 @@ my $NREP = 4800;
 my $NLOOP = 10000;
 
 print <<EOT;
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+
 #include "instbench.h"
 
 EOT
