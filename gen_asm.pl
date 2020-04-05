@@ -8,6 +8,8 @@ print <<EOT;
 #include <stdlib.h>
 #include <stdint.h>
 
+#include <unistd.h>
+
 #include "instbench.h"
 
 EOT
@@ -17,8 +19,9 @@ sub prologue($) {
 void $_[0](tsc_count_t* tc)
 {
 	tc->count = $NREP * $NLOOP;
-	uint32_t rdtsc_hi;
-	uint32_t rdtsc_lo;
+	uint64_t start, stop;
+
+	read_cycle_counter(start);
 
 	__asm__ __volatile__ (
 	R"(
@@ -42,11 +45,12 @@ sub epilogue() {
 	pop	rcx
 	sbb	edx, ecx
 	)"
-		: "=a"(rdtsc_lo), "=d"(rdtsc_hi)
-		:
-		: "rbx", "rcx", "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15");
+		: /* no output */
+		: /* no input */
+		: "rax", "rbx", "rcx", "rdx", "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15");
 
-	tc->tsc = ((uint64_t)rdtsc_hi << 32) + rdtsc_lo;
+	read_cycle_counter(stop);
+	tc->tsc = stop - start;
 }
 EOT
 }

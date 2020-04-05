@@ -1,19 +1,20 @@
 #pragma once
 
-#ifdef _WIN32
-
-#include <windows.h>
-static inline void sleep(unsigned int seconds)
-{
-	Sleep(seconds * 1000);
-}
-
-#elif defined(__unix__)
-
 #include <unistd.h>
 
-#endif
+extern int perf_fd;
 
+static inline void read_cycle_counter(uint64_t& val)
+{
+	read(perf_fd, &val, sizeof(val));
+}
+
+static inline uint64_t read_cycle_counter()
+{
+	uint64_t val;
+	read_cycle_counter(val);
+	return val;
+}
 
 struct tsc_count_t
 {

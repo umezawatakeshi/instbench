@@ -1,6 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
+
+#include <linux/perf_event.h>
+#include <linux/hw_breakpoint.h>
+#include <sys/syscall.h>
 
 #include "instbench.h"
 
@@ -52,9 +57,34 @@ void bench(benchfn_t fn)
 		printf("\n");					\
 	} while(0)
 
+int perf_fd = -1;
+
+static int perf_event_open(struct perf_event_attr *hw_event, pid_t pid, int cpu, int group_fd, unsigned long flags)
+{
+	return (int)syscall(__NR_perf_event_open, hw_event, pid, cpu, group_fd, flags);
+}
+
+void init_cycle_counter()
+{
+	struct perf_event_attr attr;
+	memset(&attr, 0, sizeof(attr));
+
+	attr.type = PERF_TYPE_HARDWARE;
+	attr.size = sizeof(attr);
+	attr.config = PERF_COUNT_HW_CPU_CYCLES;
+	attr.exclude_kernel = 1;
+
+	perf_fd = perf_event_open(&attr, 0, -1, -1, 0);
+	if (perf_fd == -1) {
+		perror("perf_event_open");
+		exit(1);
+	}
+}
 
 int main(int argc, char **argv)
 {
+	init_cycle_counter();
+
 	printf("instruction         tp   lt1   lt2\n");
 	printf("----------------------------------\n");
 	BENCH2(add_r64);

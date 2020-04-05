@@ -7,6 +7,7 @@ Note: it is not generic purpose benchmark tool. You have to modify source code t
 
 ## Requirement
 
+- Linux
 - Recent C++ compiler (GCC, Clang)
 
 
@@ -17,7 +18,7 @@ Note: it is not generic purpose benchmark tool. You have to modify source code t
 
 ## Usage
 
-Just run `instbench`.
+`sudo ./instbench`
 
 
 ## Copyright Notice and License
