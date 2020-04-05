@@ -55,6 +55,22 @@ sub epilogue() {
 EOT
 }
 
+sub gen($$$;$) {
+	my($fn, $n, $body, $pre) = @_;
+
+	$pre = "" unless defined($pre);
+
+	prologue($fn);
+	print <<EOT;
+$pre
+1:
+.rept $NREP/$n
+$body
+.endr
+EOT
+	epilogue();
+}
+
 # 生成するperl関数の命名規則は以下の通り
 # gen_drr
 # d : dst レジスタに依存関係が発生する命令。 add など
@@ -74,50 +90,35 @@ EOT
 sub gen_drr($$) {
 	my($inst, $label) = @_;
 
-	prologue("$_[1]_tp");
-	print <<EOT;
-1:
-.rept $NREP/10
-	$inst	rax, rax
-	$inst	rbx, rbx
-	$inst	rdx, rdx
-	$inst	r8, r8
-	$inst	r9, r9
-	$inst	r10, r10
-	$inst	r11, r11
-	$inst	r12, r12
-	$inst	r13, r13
-	$inst	r14, r14
-.endr
+	gen("$_[1]_tp", 10, <<EOT);
+	$inst	rax, r15
+	$inst	rbx, r15
+	$inst	rdx, r15
+	$inst	r8,  r15
+	$inst	r9,  r15
+	$inst	r10, r15
+	$inst	r11, r15
+	$inst	r12, r15
+	$inst	r13, r15
+	$inst	r14, r15
 EOT
-	epilogue();
 
-	prologue("$_[1]_lt1");
-	print <<EOT;
-1:
-.rept $NREP
-	$inst	rbx, rax
-.endr
+	gen("$_[1]_lt1", 1, <<EOT);
+	$inst	rax, r15
 EOT
-	epilogue();
 
-	prologue("$_[1]_lt2");
-	print <<EOT;
-1:
-.rept $NREP/10
+	gen("$_[1]_lt2", 10, <<EOT);
 	$inst	rbx, rax
 	$inst	rdx, rbx
-	$inst	r8, rdx
-	$inst	r9, r8
+	$inst	r8,  rdx
+	$inst	r9,  r8
 	$inst	r10, r9
 	$inst	r11, r10
 	$inst	r12, r11
 	$inst	r13, r12
 	$inst	r14, r13
 	$inst	rax, r14
-.endr
 EOT
-	epilogue();
 }
 
 ################ gen_nrr ################
@@ -125,41 +126,14 @@ EOT
 sub gen_nrr($$) {
 	my($inst, $label) = @_;
 
-	prologue("$_[1]_tp");
-	print <<EOT;
-1:
-.rept $NREP/10
-	$inst	rax, rax
-	$inst	rbx, rbx
-	$inst	rdx, rdx
-	$inst	r8, r8
-	$inst	r9, r9
-	$inst	r10, r10
-	$inst	r11, r11
-	$inst	r12, r12
-	$inst	r13, r13
-	$inst	r14, r14
-.endr
+	gen("$_[1]_tp", 1, <<EOT);
+	$inst	rax, r15
 EOT
-	epilogue();
 
-	prologue("$_[1]_lt1");
+	gen("$_[1]_lt1", 1, <<EOT);
 	print <<EOT;
-1:
-.rept $NREP/10
-	$inst	rbx, rax
-	$inst	rdx, rbx
-	$inst	r8, rdx
-	$inst	r9, r8
-	$inst	r10, r9
-	$inst	r11, r10
-	$inst	r12, r11
-	$inst	r13, r12
-	$inst	r14, r13
-	$inst	rax, r14
-.endr
+	$inst	rax, rax
 EOT
-	epilogue();
 }
 
 ################ gen_nrrr_2i ################
@@ -167,42 +141,17 @@ EOT
 sub gen_nrrr_2i($$$) {
 	my($inst, $label, $imm2) = @_;
 
-	prologue("$_[1]_tp");
-	print <<EOT;
-	mov	r15, $imm2
-1:
-.rept $NREP/10
-	$inst	rax, rax, r15
-	$inst	rbx, rbx, r15
-	$inst	rdx, rdx, r15
-	$inst	r8, r8, r15
-	$inst	r9, r9, r15
-	$inst	r10, r10, r15
-	$inst	r11, r11, r15
-	$inst	r12, r12, r15
-	$inst	r13, r13, r15
-	$inst	r14, r14, r15
-.endr
-EOT
-	epilogue();
-
-	prologue("$_[1]_lt1");
-	print <<EOT;
-1:
-.rept $NREP/10
-	$inst	rbx, rax, r15
-	$inst	rdx, rbx, r15
-	$inst	r8, rdx, r15
-	$inst	r9, r8, r15
-	$inst	r10, r9, r15
-	$inst	r11, r10, r15
-	$inst	r12, r11, r15
-	$inst	r13, r12, r15
-	$inst	r14, r13, r15
+	gen("$_[1]_tp", 1, <<EOT, <<EOPRE);
 	$inst	rax, r14, r15
-.endr
 EOT
-	epilogue();
+	mov	r15, $imm2
+EOPRE
+
+	gen("$_[1]_lt1", 1, <<EOT, <<EOPRE);
+	$inst	rax, rax, r15
+EOT
+	mov	r15, $imm2
+EOPRE
 }
 
 ################ gen_nxx ################
@@ -210,41 +159,13 @@ EOT
 sub gen_nxx($$) {
 	my($inst, $label) = @_;
 
-	prologue("$_[1]_tp");
-	print <<EOT;
-1:
-.rept $NREP/10
-	$inst	xmm0, xmm0
-	$inst	xmm1, xmm1
-	$inst	xmm2, xmm2
-	$inst	xmm3, xmm3
-	$inst	xmm4, xmm4
-	$inst	xmm5, xmm5
-	$inst	xmm6, xmm6
-	$inst	xmm7, xmm7
-	$inst	xmm8, xmm8
-	$inst	xmm9, xmm9
-.endr
+	gen("$_[1]_tp", 1, <<EOT);
+	$inst	xmm0, xmm15
 EOT
-	epilogue();
 
-	prologue("$_[1]_lt1");
-	print <<EOT;
-1:
-.rept $NREP/10
-	$inst	xmm1, xmm0
-	$inst	xmm2, xmm1
-	$inst	xmm3, xmm2
-	$inst	xmm4, xmm3
-	$inst	xmm5, xmm4
-	$inst	xmm6, xmm5
-	$inst	xmm7, xmm6
-	$inst	xmm8, xmm7
-	$inst	xmm9, xmm8
-	$inst	xmm0, xmm9
-.endr
+	gen("$_[1]_lt1", 1, <<EOT);
+	$inst	xmm0, xmm0
 EOT
-	epilogue();
 }
 
 ################ gen_dxx ################
@@ -252,37 +173,24 @@ EOT
 sub gen_dxx($$) {
 	my($inst, $label) = @_;
 
-	prologue("$_[1]_tp");
-	print <<EOT;
-1:
-.rept $NREP/10
-	$inst	xmm0, xmm0
-	$inst	xmm1, xmm1
-	$inst	xmm2, xmm2
-	$inst	xmm3, xmm3
-	$inst	xmm4, xmm4
-	$inst	xmm5, xmm5
-	$inst	xmm6, xmm6
-	$inst	xmm7, xmm7
-	$inst	xmm8, xmm8
-	$inst	xmm9, xmm9
-.endr
+	gen("$_[1]_tp", 10, <<EOT);
+	$inst	xmm0, xmm15
+	$inst	xmm1, xmm15
+	$inst	xmm2, xmm15
+	$inst	xmm3, xmm15
+	$inst	xmm4, xmm15
+	$inst	xmm5, xmm15
+	$inst	xmm6, xmm15
+	$inst	xmm7, xmm15
+	$inst	xmm8, xmm15
+	$inst	xmm9, xmm15
 EOT
-	epilogue();
 
-	prologue("$_[1]_lt1");
-	print <<EOT;
-1:
-.rept $NREP
-	$inst	xmm1, xmm0
-.endr
+	gen("$_[1]_lt1", 1, <<EOT);
+	$inst	xmm0, xmm15
 EOT
-	epilogue();
 
-	prologue("$_[1]_lt2");
-	print <<EOT;
-1:
-.rept $NREP/10
+	gen("$_[1]_lt2", 10, <<EOT);
 	$inst	xmm1, xmm0
 	$inst	xmm2, xmm1
 	$inst	xmm3, xmm2
@@ -293,9 +201,7 @@ EOT
 	$inst	xmm8, xmm7
 	$inst	xmm9, xmm8
 	$inst	xmm0, xmm9
-.endr
 EOT
-	epilogue();
 }
 
 ################ gen_nxxx ################
@@ -303,50 +209,17 @@ EOT
 sub gen_nxxx($$) {
 	my($inst, $label) = @_;
 
-	prologue("$_[1]_tp");
-	print <<EOT;
-1:
-.rept $NREP/10
-	$inst	xmm0, xmm0, xmm15
-	$inst	xmm1, xmm1, xmm15
-	$inst	xmm2, xmm2, xmm15
-	$inst	xmm3, xmm3, xmm15
-	$inst	xmm4, xmm4, xmm15
-	$inst	xmm5, xmm5, xmm15
-	$inst	xmm6, xmm6, xmm15
-	$inst	xmm7, xmm7, xmm15
-	$inst	xmm8, xmm8, xmm15
-	$inst	xmm9, xmm9, xmm15
-.endr
+	gen("$_[1]_tp", 1, <<EOT);
+	$inst	xmm0, xmm14, xmm15
 EOT
-	epilogue();
 
-	prologue("$_[1]_lt1");
-	print <<EOT;
-1:
-.rept $NREP
+	gen("$_[1]_lt1", 1, <<EOT);
 	$inst	xmm0, xmm0, xmm15
-.endr
 EOT
-	epilogue();
 
-	prologue("$_[1]_lt2");
-	print <<EOT;
-1:
-.rept $NREP/10
-	$inst	xmm1, xmm0, xmm15
-	$inst	xmm2, xmm1, xmm15
-	$inst	xmm3, xmm2, xmm15
-	$inst	xmm4, xmm3, xmm15
-	$inst	xmm5, xmm4, xmm15
-	$inst	xmm6, xmm5, xmm15
-	$inst	xmm7, xmm6, xmm15
-	$inst	xmm8, xmm7, xmm15
-	$inst	xmm9, xmm8, xmm15
-	$inst	xmm0, xmm9, xmm15
-.endr
+	gen("$_[1]_lt2", 1, <<EOT);
+	$inst	xmm0, xmm15, xmm0
 EOT
-	epilogue();
 }
 
 ################ gen_nxxxx ################
@@ -354,77 +227,21 @@ EOT
 sub gen_nxxxx($$) {
 	my($inst, $label) = @_;
 
-	prologue("$_[1]_tp");
-	print <<EOT;
-1:
-.rept $NREP/10
-	$inst	xmm0, xmm15, xmm15, xmm15
-	$inst	xmm1, xmm15, xmm15, xmm15
-	$inst	xmm2, xmm15, xmm15, xmm15
-	$inst	xmm3, xmm15, xmm15, xmm15
-	$inst	xmm4, xmm15, xmm15, xmm15
-	$inst	xmm5, xmm15, xmm15, xmm15
-	$inst	xmm6, xmm15, xmm15, xmm15
-	$inst	xmm7, xmm15, xmm15, xmm15
-	$inst	xmm8, xmm15, xmm15, xmm15
-	$inst	xmm9, xmm15, xmm15, xmm15
-.endr
+	gen("$_[1]_tp", 1, <<EOT);
+	$inst	xmm0, xmm13, xmm14, xmm15
 EOT
-	epilogue();
 
-	prologue("$_[1]_lt1");
-	print <<EOT;
-1:
-.rept $NREP/10
-	$inst	xmm1, xmm0, xmm15, xmm15
-	$inst	xmm2, xmm1, xmm15, xmm15
-	$inst	xmm3, xmm2, xmm15, xmm15
-	$inst	xmm4, xmm3, xmm15, xmm15
-	$inst	xmm5, xmm4, xmm15, xmm15
-	$inst	xmm6, xmm5, xmm15, xmm15
-	$inst	xmm7, xmm6, xmm15, xmm15
-	$inst	xmm8, xmm7, xmm15, xmm15
-	$inst	xmm9, xmm8, xmm15, xmm15
-	$inst	xmm0, xmm9, xmm15, xmm15
-.endr
+	gen("$_[1]_lt1", 1, <<EOT);
+	$inst	xmm0, xmm0, xmm14, xmm15
 EOT
-	epilogue();
 
-	prologue("$_[1]_lt2");
-	print <<EOT;
-1:
-.rept $NREP/10
-	$inst	xmm1, xmm15, xmm0, xmm15
-	$inst	xmm2, xmm15, xmm1, xmm15
-	$inst	xmm3, xmm15, xmm2, xmm15
-	$inst	xmm4, xmm15, xmm3, xmm15
-	$inst	xmm5, xmm15, xmm4, xmm15
-	$inst	xmm6, xmm15, xmm5, xmm15
-	$inst	xmm7, xmm15, xmm6, xmm15
-	$inst	xmm8, xmm15, xmm7, xmm15
-	$inst	xmm9, xmm15, xmm8, xmm15
-	$inst	xmm0, xmm15, xmm9, xmm15
-.endr
+	gen("$_[1]_lt2", 1, <<EOT);
+	$inst	xmm0, xmm14, xmm0, xmm15
 EOT
-	epilogue();
 
-	prologue("$_[1]_lt3");
-	print <<EOT;
-1:
-.rept $NREP/10
-	$inst	xmm1, xmm15, xmm15, xmm0
-	$inst	xmm2, xmm15, xmm15, xmm1
-	$inst	xmm3, xmm15, xmm15, xmm2
-	$inst	xmm4, xmm15, xmm15, xmm3
-	$inst	xmm5, xmm15, xmm15, xmm4
-	$inst	xmm6, xmm15, xmm15, xmm5
-	$inst	xmm7, xmm15, xmm15, xmm6
-	$inst	xmm8, xmm15, xmm15, xmm7
-	$inst	xmm9, xmm15, xmm15, xmm8
-	$inst	xmm0, xmm15, xmm15, xmm9
-.endr
+	gen("$_[1]_lt3", 1, <<EOT);
+	$inst	xmm0, xmm14, xmm15, xmm0
 EOT
-	epilogue();
 }
 
 ################ gen_nyy ################
@@ -432,32 +249,13 @@ EOT
 sub gen_nyy($$) {
 	my($inst, $label) = @_;
 
-	prologue("$_[1]_tp");
-	print <<EOT;
-1:
-.rept $NREP/10
-	$inst	ymm0, ymm0
-	$inst	ymm1, ymm1
-	$inst	ymm2, ymm2
-	$inst	ymm3, ymm3
-	$inst	ymm4, ymm4
-	$inst	ymm5, ymm5
-	$inst	ymm6, ymm6
-	$inst	ymm7, ymm7
-	$inst	ymm8, ymm8
-	$inst	ymm9, ymm9
-.endr
+	gen("$_[1]_tp", 1, <<EOT);
+	$inst	ymm0, ymm15
 EOT
-	epilogue();
 
-	prologue("$_[1]_lt1");
-	print <<EOT;
-1:
-.rept $NREP
+	gen("$_[1]_lt1", 1, <<EOT);
 	$inst	ymm0, ymm0
-.endr
 EOT
-	epilogue();
 }
 
 ################ gen_nyx ################
@@ -465,32 +263,13 @@ EOT
 sub gen_nyx($$) {
 	my($inst, $label) = @_;
 
-	prologue("$_[1]_tp");
-	print <<EOT;
-1:
-.rept $NREP/10
-	$inst	ymm0, xmm0
-	$inst	ymm1, xmm1
-	$inst	ymm2, xmm2
-	$inst	ymm3, xmm3
-	$inst	ymm4, xmm4
-	$inst	ymm5, xmm5
-	$inst	ymm6, xmm6
-	$inst	ymm7, xmm7
-	$inst	ymm8, xmm8
-	$inst	ymm9, xmm9
-.endr
+	gen("$_[1]_tp", 1, <<EOT);
+	$inst	ymm0, xmm15
 EOT
-	epilogue();
 
-	prologue("$_[1]_lt1");
-	print <<EOT;
-1:
-.rept $NREP
+	gen("$_[1]_lt1", 1, <<EOT);
 	$inst	ymm0, xmm0
-.endr
 EOT
-	epilogue();
 }
 
 ################ gen_nyyy ################
@@ -498,50 +277,17 @@ EOT
 sub gen_nyyy($$) {
 	my($inst, $label) = @_;
 
-	prologue("$_[1]_tp");
-	print <<EOT;
-1:
-.rept $NREP/10
-	$inst	ymm0, ymm0, ymm15
-	$inst	ymm1, ymm1, ymm15
-	$inst	ymm2, ymm2, ymm15
-	$inst	ymm3, ymm3, ymm15
-	$inst	ymm4, ymm4, ymm15
-	$inst	ymm5, ymm5, ymm15
-	$inst	ymm6, ymm6, ymm15
-	$inst	ymm7, ymm7, ymm15
-	$inst	ymm8, ymm8, ymm15
-	$inst	ymm9, ymm9, ymm15
-.endr
+	gen("$_[1]_tp", 1, <<EOT);
+	$inst	ymm0, ymm14, ymm15
 EOT
-	epilogue();
 
-	prologue("$_[1]_lt1");
-	print <<EOT;
-1:
-.rept $NREP
+	gen("$_[1]_lt1", 1, <<EOT);
 	$inst	ymm0, ymm0, ymm15
-.endr
 EOT
-	epilogue();
 
-	prologue("$_[1]_lt2");
-	print <<EOT;
-1:
-.rept $NREP/10
-	$inst	ymm1, ymm0, ymm15
-	$inst	ymm2, ymm1, ymm15
-	$inst	ymm3, ymm2, ymm15
-	$inst	ymm4, ymm3, ymm15
-	$inst	ymm5, ymm4, ymm15
-	$inst	ymm6, ymm5, ymm15
-	$inst	ymm7, ymm6, ymm15
-	$inst	ymm8, ymm7, ymm15
-	$inst	ymm9, ymm8, ymm15
-	$inst	ymm0, ymm9, ymm15
-.endr
+	gen("$_[1]_lt2", 1, <<EOT);
+	$inst	ymm0, ymm15, ymm0
 EOT
-	epilogue();
 }
 
 gen_drr("add", "add_r64");
