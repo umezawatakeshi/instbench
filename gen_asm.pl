@@ -83,11 +83,14 @@ my $zmm = gen_regs("zmm");
 
 
 # 生成するperl関数の命名規則は以下の通り
-# gen_n3_c3
+# gen_n3_c3 genz_n2_k
+# m : AVX-512 において、merging-masking を使う
+# z : AVX-512 において、zeroing-masking を使う
 # d : dst レジスタに依存関係が発生する命令。 add など
 # n : dst レジスタに依存関係が発生しない命令。ほぼすべての vex prefix 命令や PMOVZXxx など
 # 3 : オペランドが3つ
 # c3 : 3番目のオペランドに定数を指定（BSR や PEXT など値によって速度が変わる命令で使う）
+# k : masking に使う k レジスタに定数を指定
 #
 # 生成されるC++関数の命名規則は以下の通り
 # add_r64_tp
@@ -104,6 +107,17 @@ sub gen_d2($$$$) {
 	gen("$_[1]_tp", 10, join("\n", map { "$inst $o1->[$_], $o2->[-1]" } 0..9));
 	gen("$_[1]_lt1", 1, "$inst $o1->[0], $o2->[-1]");
 	gen("$_[1]_lt2", 10, join("\n", map { "$inst $o1->[($_+1)%10], $o2->[$_]" } 0..9));
+}
+
+################ gen_d3 ################
+
+sub gen_d3($$$$$) {
+	my($inst, $label, $o1, $o2, $o3) = @_;
+
+	gen("$_[1]_tp", 10, join("\n", map { "$inst $o1->[$_], $o2->[-2], $o3->[-1]" } 0..9));
+	gen("$_[1]_lt1", 1, "$inst $o1->[0], $o2->[-2], $o3->[-1]");
+	gen("$_[1]_lt2", 10, join("\n", map { "$inst $o1->[($_+1)%10], $o2->[$_], $o3->[-1]" } 0..9));
+	gen("$_[1]_lt3", 10, join("\n", map { "$inst $o1->[($_+1)%10], $o2->[-1], $o3->[$_]" } 0..9));
 }
 
 ################ gen_n2 ################
@@ -146,6 +160,16 @@ sub gen_n3_c3($$$$$$) {
 	gen("$_[1]_lt1", 1, "$inst $o1->[0], $o2->[0], $o3->[-1]", $pre);
 }
 
+################ genz_n2_k ################
+
+sub genz_n2_k($$$$$) {
+	my($inst, $label, $o1, $o2, $k) = @_;
+
+	my $pre = "mov rax, $k \n kmovq k7, rax";
+	gen("$_[1]_tp", 1, "$inst $o1->[0]\{k7}{z}, $o2->[-1]", $pre);
+	gen("$_[1]_lt1", 1, "$inst $o1->[0]\{k7}{z}, $o2->[0]", $pre);
+}
+
 
 gen_d2("add", "add_r64", $r64, $r64);
 gen_d2("paddb", "paddb_xmm", $xmm, $xmm);
@@ -158,3 +182,26 @@ gen_n3_c3("pext", "pext_all1", $r64, $r64, $r64, "0xffffffffffffffff");
 gen_n3_c3("pext", "pext_half", $r64, $r64, $r64, "0x5555555555555555");
 gen_n3_c3("pext", "pext_lo",   $r64, $r64, $r64, "0x00000000ffffffff");
 gen_n3_c3("pext", "pext_hi",   $r64, $r64, $r64, "0xffffffff00000000");
+gen_n3("vpermb", "vpermb_xmm", $xmm, $xmm, $xmm);
+gen_n3("vpermb", "vpermb_zmm", $zmm, $zmm, $zmm);
+gen_n3("vpermw", "vpermw_zmm", $zmm, $zmm, $zmm);
+gen_n3("vpermd", "vpermd_zmm", $zmm, $zmm, $zmm);
+gen_n3("vpermq", "vpermq_zmm", $zmm, $zmm, $zmm);
+gen_d3("vpermt2b", "vpermt2b_xmm", $xmm, $xmm, $xmm);
+gen_d3("vpermt2b", "vpermt2b_zmm", $zmm, $zmm, $zmm);
+gen_d3("vpermt2w", "vpermt2w_zmm", $zmm, $zmm, $zmm);
+gen_d3("vpermt2d", "vpermt2d_zmm", $zmm, $zmm, $zmm);
+gen_d3("vpermt2q", "vpermt2q_zmm", $zmm, $zmm, $zmm);
+gen_d3("vpermi2b", "vpermi2b_zmm", $zmm, $zmm, $zmm);
+gen_d3("vpermi2w", "vpermi2w_zmm", $zmm, $zmm, $zmm);
+gen_d3("vpermi2d", "vpermi2d_zmm", $zmm, $zmm, $zmm);
+gen_d3("vpermi2q", "vpermi2q_zmm", $zmm, $zmm, $zmm);
+genz_n2_k("vpcompressb", "vpcompressb_xmm_all0", $xmm, $xmm, "0x0000");
+genz_n2_k("vpcompressb", "vpcompressb_zmm_all0", $zmm, $zmm, "0x0000000000000000");
+genz_n2_k("vpcompressb", "vpcompressb_xmm_all1", $xmm, $xmm, "0xffff");
+genz_n2_k("vpcompressb", "vpcompressb_zmm_all1", $zmm, $zmm, "0xffffffffffffffff");
+genz_n2_k("vpcompressb", "vpcompressb_xmm_half", $xmm, $xmm, "0x5555");
+genz_n2_k("vpcompressb", "vpcompressb_zmm_half", $zmm, $zmm, "0x5555555555555555");
+genz_n2_k("vpcompressw", "vpcompressw_zmm_half", $zmm, $zmm, "0x55555555");
+genz_n2_k("vpcompressd", "vpcompressd_zmm_half", $zmm, $zmm, "0x5555");
+genz_n2_k("vpcompressq", "vpcompressq_zmm_half", $zmm, $zmm, "0x55");

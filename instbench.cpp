@@ -29,7 +29,7 @@ void bench(benchfn_t fn)
 
 #define BENCH1(x)						\
 	do {								\
-		printf("%-16s", #x);			\
+		printf("%-24s", #x);			\
 		fflush(stdout);					\
 		DECLARE_AND_BENCH(x ## _tp);	\
 		DECLARE_AND_BENCH(x ## _lt1);	\
@@ -38,7 +38,7 @@ void bench(benchfn_t fn)
 
 #define BENCH2(x)						\
 	do {								\
-		printf("%-16s", #x);			\
+		printf("%-24s", #x);			\
 		fflush(stdout);					\
 		DECLARE_AND_BENCH(x ## _tp);	\
 		DECLARE_AND_BENCH(x ## _lt1);	\
@@ -48,7 +48,7 @@ void bench(benchfn_t fn)
 
 #define BENCH3(x)						\
 	do {								\
-		printf("%-16s", #x);			\
+		printf("%-24s", #x);			\
 		fflush(stdout);					\
 		DECLARE_AND_BENCH(x ## _tp);	\
 		DECLARE_AND_BENCH(x ## _lt1);	\
@@ -85,8 +85,8 @@ int main(int argc, char **argv)
 {
 	init_cycle_counter();
 
-	printf("instruction         tp   lt1   lt2   lt3\n");
-	printf("----------------------------------------\n");
+	printf("instruction                 tp   lt1   lt2   lt3\n");
+	printf("------------------------------------------------\n");
 	BENCH2(add_r64);
 	BENCH2(paddb_xmm);
 	BENCH2(vpaddb_xmm);
@@ -98,6 +98,29 @@ int main(int argc, char **argv)
 	BENCH1(pext_half);
 	BENCH1(pext_lo);
 	BENCH1(pext_hi);
+	BENCH2(vpermb_xmm);
+	BENCH2(vpermb_zmm);
+	BENCH2(vpermw_zmm);
+	BENCH2(vpermd_zmm);
+	BENCH2(vpermq_zmm);
+	BENCH3(vpermt2b_xmm);
+	BENCH3(vpermt2b_zmm);
+	BENCH3(vpermt2w_zmm);
+	BENCH3(vpermt2d_zmm);
+	BENCH3(vpermt2q_zmm);
+	BENCH3(vpermi2b_zmm);
+	BENCH3(vpermi2w_zmm);
+	BENCH3(vpermi2d_zmm);
+	BENCH3(vpermi2q_zmm);
+	BENCH1(vpcompressb_xmm_all0);
+	BENCH1(vpcompressb_zmm_all0);
+	BENCH1(vpcompressb_xmm_all1);
+	BENCH1(vpcompressb_zmm_all1);
+	BENCH1(vpcompressb_xmm_half);
+	BENCH1(vpcompressb_zmm_half);
+	BENCH1(vpcompressw_zmm_half);
+	BENCH1(vpcompressd_zmm_half);
+	BENCH1(vpcompressq_zmm_half);
 
 	return 0;
 }
