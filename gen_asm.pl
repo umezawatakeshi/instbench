@@ -166,8 +166,8 @@ sub genz_n2_k($$$$$) {
 	my($inst, $label, $o1, $o2, $k) = @_;
 
 	my $pre = "mov rax, $k \n kmovq k7, rax";
-	gen("$_[1]_tp", 1, "$inst $o1->[0]\{k7}{z}, $o2->[-1]", $pre);
-	gen("$_[1]_lt1", 1, "$inst $o1->[0]\{k7}{z}, $o2->[0]", $pre);
+	gen("$_[1]_tp", 1, "$inst $o1->[0]\%{k7}%{z}, $o2->[-1]", $pre);
+	gen("$_[1]_lt1", 1, "$inst $o1->[0]\%{k7}%{z}, $o2->[0]", $pre);
 }
 
 
