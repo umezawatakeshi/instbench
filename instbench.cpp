@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <time.h>
 
 #include <linux/perf_event.h>
 #include <linux/hw_breakpoint.h>
@@ -9,11 +10,13 @@
 
 #include "instbench.h"
 
+timespec ts_100ms = { 0, 100*1000*1000 };
+
 void bench(benchfn_t fn)
 {
 	tsc_count_t tc;
 
-	sleep(1);
+	nanosleep(&ts_100ms, NULL);
 	fn(&tc);
 	fn(&tc);
 
