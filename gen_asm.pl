@@ -14,12 +14,15 @@ print <<EOT;
 
 EOT
 
-sub prologue($) {
+sub prologue($$) {
 	print <<EOT;
 void $_[0](tsc_count_t* tc)
 {
 	tc->count = $NREP * $NLOOP;
 	uint64_t start, stop;
+	void* dummy;
+
+	$_[1]
 
 	read_cycle_counter(start);
 
@@ -36,9 +39,9 @@ sub epilogue() {
 	sub	rcx, 1
 	jnz	1b
 	)"
-		: /* no output */
-		: /* no input */
-		: "rax", "rbx", "rcx", "rdx", "rsi", "rdi", "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15");
+		: "=a"(dummy)
+		: "a"(tmpbuf)
+		: "rbx", "rcx", "rdx", "rsi", "rdi", "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15");
 
 	read_cycle_counter(stop);
 	tc->tsc = stop - start;
@@ -46,12 +49,13 @@ sub epilogue() {
 EOT
 }
 
-sub gen($$$;$) {
-	my($fn, $n, $body, $pre) = @_;
+sub gen($$$;$$) {
+	my($fn, $n, $body, $pre, $precxx) = @_;
 
 	$pre = "" unless defined($pre);
+	$precxx = "" unless defined($precxx);
 
-	prologue($fn);
+	prologue($fn, $precxx);
 	print <<EOT;
 $pre
 1:
@@ -170,6 +174,37 @@ sub genz_n2_k($$$$$) {
 	gen("$_[1]_lt1", 1, "$inst $o1->[0]\%{k7}%{z}, $o2->[0]", $pre);
 }
 
+################ genm_vpgather_k0 ################
+
+sub genm_vpgather_k0($$$$) {
+	my($inst, $label, $o1, $o2) = @_;
+
+	my $pre = "mov rax, 0 \n" . join("\n", map { "kmovq k$_, rax" } 1..5);
+	gen("$_[1]_tp", 5, join("\n", map { "$inst $o1->[$_]\%{k$_}, \[rax + $o2->[-1]]" } 1..5), $pre);
+	gen("$_[1]_lt1", 5, join("\n", map { "$inst $o1->[0]\%{k$_}, \[rax + $o2->[-1]]" } 1..5), $pre);
+	gen("$_[1]_lt2", 5, join("\n", map { "$inst $o1->[$_]\%{k1}, \[rax + $o2->[-1]]" } 1..5), $pre);
+	gen("$_[1]_lt3", 5, join("\n", map { "$inst $o1->[$_%5+1]\%{k$_}, \[rax + $o2->[$_]]" } 1..5), $pre);
+}
+
+################ genm_vpgather_k ################
+
+sub genm_vpgather_k($$$$$$) {
+	my($inst, $label, $o1, $o2, $t, $k) = @_;
+
+	my $precxx = <<EOCXX;
+	$t* p = ($t*)tmpbuf;
+	for (int i = 0; i < 64; ++i) {
+		p[i] = sizeof($t) * i;
+	}
+EOCXX
+	my $pre = "mov rbx, $k \n kmovq k7, rbx \n" . join("\n", map { "vmovdqu32 $o1->[$_], \[rax]" } 1..5);
+	gen("$_[1]_tp", 5, join("\n", map { "kmovd k$_, k7 \n $inst $o1->[$_]\%{k$_}, \[rax + $o2->[-1]]" } 1..5), $pre, $precxx);
+	gen("$_[1]_lt1", 5, join("\n", map { "kmovd k$_, k7 \n $inst $o1->[0]\%{k$_}, \[rax + $o2->[-1]]" } 1..5), $pre, $precxx);
+	gen("$_[1]_lt2", 5, join("\n", map { "kmovd k1, k7 \n $inst $o1->[$_]\%{k1}, \[rax + $o2->[-1]]" } 1..5), $pre, $precxx);
+	gen("$_[1]_lt3", 5, join("\n", map { "kmovd k$_, k7 \n $inst $o1->[$_%5+1]\%{k$_}, \[rax + $o2->[$_]]" } 1..5), $pre, $precxx);
+}
+
+################################
 
 gen_d2("add", "add_r64", $r64, $r64);
 gen_d2("paddb", "paddb_xmm", $xmm, $xmm);
@@ -205,3 +240,9 @@ genz_n2_k("vpcompressb", "vpcompressb_zmm_half", $zmm, $zmm, "0x5555555555555555
 genz_n2_k("vpcompressw", "vpcompressw_zmm_half", $zmm, $zmm, "0x55555555");
 genz_n2_k("vpcompressd", "vpcompressd_zmm_half", $zmm, $zmm, "0x5555");
 genz_n2_k("vpcompressq", "vpcompressq_zmm_half", $zmm, $zmm, "0x55");
+genm_vpgather_k0("vpgatherdd", "vpgatherdd_zmm_k0", $zmm, $zmm);
+genm_vpgather_k0("vpgatherqq", "vpgatherqq_zmm_k0", $zmm, $zmm);
+genm_vpgather_k0("vpgatherqq", "vpgatherqq_ymm_k0", $ymm, $ymm);
+genm_vpgather_k0("vpgatherqq", "vpgatherqq_xmm_k0", $xmm, $xmm);
+genm_vpgather_k("vpgatherdd", "vpgatherdd_zmm_all1", $zmm, $zmm, "uint32_t", "0xffff");
+genm_vpgather_k("vpgatherqq", "vpgatherqq_zmm_all1", $zmm, $zmm, "uint64_t", "0xff");

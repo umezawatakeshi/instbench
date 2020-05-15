@@ -23,3 +23,5 @@ struct tsc_count_t
 };
 
 typedef void (*benchfn_t)(tsc_count_t*);
+
+extern void* tmpbuf;

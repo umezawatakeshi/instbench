@@ -10,6 +10,8 @@
 
 #include "instbench.h"
 
+void* tmpbuf = aligned_alloc(1024*1024, 4096);
+
 timespec ts_100ms = { 0, 100*1000*1000 };
 
 void bench(benchfn_t fn)
@@ -124,6 +126,12 @@ int main(int argc, char **argv)
 	BENCH1(vpcompressw_zmm_half);
 	BENCH1(vpcompressd_zmm_half);
 	BENCH1(vpcompressq_zmm_half);
+	BENCH3(vpgatherdd_zmm_k0);
+	BENCH3(vpgatherqq_zmm_k0);
+	BENCH3(vpgatherqq_ymm_k0);
+	BENCH3(vpgatherqq_xmm_k0);
+	BENCH3(vpgatherdd_zmm_all1);
+	BENCH3(vpgatherqq_zmm_all1);
 
 	return 0;
 }
