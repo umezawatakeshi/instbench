@@ -41,6 +41,14 @@ void bench(benchfn_t fn)
 		printf("\n");					\
 	} while(0)
 
+#define BENCH0(x)						\
+	do {								\
+		printf("%-24s", #x);			\
+		fflush(stdout);					\
+		DECLARE_AND_BENCH(x ## _tp);	\
+		printf("\n");					\
+	} while(0)
+
 #define BENCH2(x)						\
 	do {								\
 		printf("%-24s", #x);			\
@@ -132,6 +140,10 @@ int main(int argc, char **argv)
 	BENCH3(vpgatherqq_xmm_k0);
 	BENCH3(vpgatherdd_zmm_all1);
 	BENCH3(vpgatherqq_zmm_all1);
+	BENCH0(vpscatterdd_zmm_all0);
+	BENCH0(vpscatterqq_zmm_all0);
+	BENCH0(vpscatterdd_zmm_all1);
+	BENCH0(vpscatterqq_zmm_all1);
 
 	return 0;
 }

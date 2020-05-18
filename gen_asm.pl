@@ -204,6 +204,21 @@ EOCXX
 	gen("$_[1]_lt3", 5, join("\n", map { "kmovd k$_, k7 \n $inst $o1->[$_%5+1]\%{k$_}, \[rax + $o2->[$_]]" } 1..5), $pre, $precxx);
 }
 
+################ genm_vpscatter_k ################
+
+sub genm_vpscatter_k($$$$$$) {
+	my($inst, $label, $o1, $o2, $t, $k) = @_;
+
+	my $precxx = <<EOCXX;
+	$t* p = ($t*)tmpbuf;
+	for (int i = 0; i < 64; ++i) {
+		p[i] = sizeof($t) * i;
+	}
+EOCXX
+	my $pre = "mov rbx, $k \n kmovq k7, rbx \n vmovdqu32 $o1->[-1], \[rax]";
+	gen("$_[1]_tp", 1, "kmovd k1, k7 \n $inst \[rax + $o1->[-1]]\%{k1}, $o2->[-2]", $pre, $precxx);
+}
+
 ################################
 
 gen_d2("add", "add_r64", $r64, $r64);
@@ -246,3 +261,7 @@ genm_vpgather_k0("vpgatherqq", "vpgatherqq_ymm_k0", $ymm, $ymm);
 genm_vpgather_k0("vpgatherqq", "vpgatherqq_xmm_k0", $xmm, $xmm);
 genm_vpgather_k("vpgatherdd", "vpgatherdd_zmm_all1", $zmm, $zmm, "uint32_t", "0xffff");
 genm_vpgather_k("vpgatherqq", "vpgatherqq_zmm_all1", $zmm, $zmm, "uint64_t", "0xff");
+genm_vpscatter_k("vpscatterdd", "vpscatterdd_zmm_all0", $zmm, $zmm, "uint32_t", "0x0000");
+genm_vpscatter_k("vpscatterqq", "vpscatterqq_zmm_all0", $zmm, $zmm, "uint64_t", "0x00");
+genm_vpscatter_k("vpscatterdd", "vpscatterdd_zmm_all1", $zmm, $zmm, "uint32_t", "0xffff");
+genm_vpscatter_k("vpscatterqq", "vpscatterqq_zmm_all1", $zmm, $zmm, "uint64_t", "0xff");
