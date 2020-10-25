@@ -94,6 +94,7 @@ my $zmm = gen_regs("zmm");
 # n : dst レジスタに依存関係が発生しない命令。ほぼすべての vex prefix 命令や PMOVZXxx など
 # 3 : オペランドが3つ
 # c3 : 3番目のオペランドに定数を指定（BSR や PEXT など値によって速度が変わる命令で使う）
+# i3 : 3番目のオペランドに即値を指定
 # k : masking に使う k レジスタに定数を指定
 #
 # 生成されるC++関数の命名規則は以下の通り
@@ -162,6 +163,17 @@ sub gen_n3_c3($$$$$$) {
 	my $pre = "mov $o3->[-1], $c3";
 	gen("$_[1]_tp", 1, "$inst $o1->[0], $o2->[-2], $o3->[-1]", $pre);
 	gen("$_[1]_lt1", 1, "$inst $o1->[0], $o2->[0], $o3->[-1]", $pre);
+}
+
+################ gen_d4_i4 ################
+
+sub gen_d4_i4($$$$$$) {
+	my($inst, $label, $o1, $o2, $o3, $i4) = @_;
+
+	gen("$_[1]_tp", 10, join("\n", map { "$inst $o1->[$_], $o2->[-2], $o3->[-1], $i4" } 0..9));
+	gen("$_[1]_lt1", 1, "$inst $o1->[0], $o2->[-2], $o3->[-1], $i4");
+	gen("$_[1]_lt2", 10, join("\n", map { "$inst $o1->[($_+1)%10], $o2->[$_], $o3->[-1], $i4" } 0..9));
+	gen("$_[1]_lt3", 10, join("\n", map { "$inst $o1->[($_+1)%10], $o2->[-1], $o3->[$_], $i4" } 0..9));
 }
 
 ################ genz_n2_k ################
@@ -274,3 +286,6 @@ gen_n3("vpmaddwd", "vpmaddwd_zmm", $zmm, $zmm, $zmm);
 gen_n3("vpmultishiftqb", "vpmultishiftqb_xmm", $xmm, $xmm, $xmm);
 gen_n3("vpmultishiftqb", "vpmultishiftqb_ymm", $ymm, $ymm, $ymm);
 gen_n3("vpmultishiftqb", "vpmultishiftqb_zmm", $zmm, $zmm, $zmm);
+gen_d4_i4("vpternlogq", "vpternlogq_xmm", $xmm, $xmm, $xmm, "0xff");
+gen_d4_i4("vpternlogq", "vpternlogq_ymm", $ymm, $ymm, $ymm, "0xff");
+gen_d4_i4("vpternlogq", "vpternlogq_zmm", $zmm, $zmm, $zmm, "0xff");

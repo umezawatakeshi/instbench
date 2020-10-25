@@ -153,6 +153,9 @@ int main(int argc, char **argv)
 	BENCH2(vpmultishiftqb_xmm);
 	BENCH2(vpmultishiftqb_ymm);
 	BENCH2(vpmultishiftqb_zmm);
+	BENCH3(vpternlogq_xmm);
+	BENCH3(vpternlogq_ymm);
+	BENCH3(vpternlogq_zmm);
 
 	return 0;
 }
