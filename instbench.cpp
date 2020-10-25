@@ -144,6 +144,12 @@ int main(int argc, char **argv)
 	BENCH0(vpscatterqq_zmm_all0);
 	BENCH0(vpscatterdd_zmm_all1);
 	BENCH0(vpscatterqq_zmm_all1);
+	BENCH3(vpdpwssd_xmm);
+	BENCH3(vpdpwssd_ymm);
+	BENCH3(vpdpwssd_zmm);
+	BENCH2(vpmaddwd_xmm);
+	BENCH2(vpmaddwd_ymm);
+	BENCH2(vpmaddwd_zmm);
 
 	return 0;
 }

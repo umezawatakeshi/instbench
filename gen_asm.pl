@@ -265,3 +265,9 @@ genm_vpscatter_k("vpscatterdd", "vpscatterdd_zmm_all0", $zmm, $zmm, "uint32_t", 
 genm_vpscatter_k("vpscatterqq", "vpscatterqq_zmm_all0", $zmm, $zmm, "uint64_t", "0x00");
 genm_vpscatter_k("vpscatterdd", "vpscatterdd_zmm_all1", $zmm, $zmm, "uint32_t", "0xffff");
 genm_vpscatter_k("vpscatterqq", "vpscatterqq_zmm_all1", $zmm, $zmm, "uint64_t", "0xff");
+gen_d3("vpdpwssd", "vpdpwssd_xmm", $xmm, $xmm, $xmm);
+gen_d3("vpdpwssd", "vpdpwssd_ymm", $ymm, $ymm, $ymm);
+gen_d3("vpdpwssd", "vpdpwssd_zmm", $zmm, $zmm, $zmm);
+gen_n3("vpmaddwd", "vpmaddwd_xmm", $xmm, $xmm, $xmm);
+gen_n3("vpmaddwd", "vpmaddwd_ymm", $ymm, $ymm, $ymm);
+gen_n3("vpmaddwd", "vpmaddwd_zmm", $zmm, $zmm, $zmm);
