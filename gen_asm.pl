@@ -271,3 +271,6 @@ gen_d3("vpdpwssd", "vpdpwssd_zmm", $zmm, $zmm, $zmm);
 gen_n3("vpmaddwd", "vpmaddwd_xmm", $xmm, $xmm, $xmm);
 gen_n3("vpmaddwd", "vpmaddwd_ymm", $ymm, $ymm, $ymm);
 gen_n3("vpmaddwd", "vpmaddwd_zmm", $zmm, $zmm, $zmm);
+gen_n3("vpmultishiftqb", "vpmultishiftqb_xmm", $xmm, $xmm, $xmm);
+gen_n3("vpmultishiftqb", "vpmultishiftqb_ymm", $ymm, $ymm, $ymm);
+gen_n3("vpmultishiftqb", "vpmultishiftqb_zmm", $zmm, $zmm, $zmm);

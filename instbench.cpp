@@ -150,6 +150,9 @@ int main(int argc, char **argv)
 	BENCH2(vpmaddwd_xmm);
 	BENCH2(vpmaddwd_ymm);
 	BENCH2(vpmaddwd_zmm);
+	BENCH2(vpmultishiftqb_xmm);
+	BENCH2(vpmultishiftqb_ymm);
+	BENCH2(vpmultishiftqb_zmm);
 
 	return 0;
 }
