@@ -176,6 +176,15 @@ sub gen_d4_i4($$$$$$) {
 	gen("$_[1]_lt3", 10, join("\n", map { "$inst $o1->[($_+1)%10], $o2->[-1], $o3->[$_], $i4" } 0..9));
 }
 
+################ gen_n3_i3 ################
+
+sub gen_n3_i3($$$$$) {
+	my($inst, $label, $o1, $o2, $i3) = @_;
+
+	gen("$_[1]_tp", 10, join("\n", map { "$inst $o1->[$_], $o2->[-2], $i3" } 0..9));
+	gen("$_[1]_lt1", 10, join("\n", map { "$inst $o1->[($_+1)%10], $o2->[$_], $i3" } 0..9));
+}
+
 ################ genz_n2_k ################
 
 sub genz_n2_k($$$$$) {
@@ -289,3 +298,12 @@ gen_n3("vpmultishiftqb", "vpmultishiftqb_zmm", $zmm, $zmm, $zmm);
 gen_d4_i4("vpternlogq", "vpternlogq_xmm", $xmm, $xmm, $xmm, "0xff");
 gen_d4_i4("vpternlogq", "vpternlogq_ymm", $ymm, $ymm, $ymm, "0xff");
 gen_d4_i4("vpternlogq", "vpternlogq_zmm", $zmm, $zmm, $zmm, "0xff");
+gen_n3_i3("vpsllq", "vpsllq_xmm_imm", $xmm, $xmm, "3");
+gen_n3_i3("vpsllq", "vpsllq_ymm_imm", $ymm, $ymm, "3");
+gen_n3_i3("vpsllq", "vpsllq_zmm_imm", $zmm, $zmm, "3");
+gen_n3("vpsllq", "vpsllq_xmm_xmm", $xmm, $xmm, $xmm);
+gen_n3("vpsllq", "vpsllq_ymm_xmm", $ymm, $ymm, $xmm);
+gen_n3("vpsllq", "vpsllq_zmm_xmm", $zmm, $zmm, $xmm);
+gen_n3("vpsllvq", "vpsllvq_xmm", $xmm, $xmm, $xmm);
+gen_n3("vpsllvq", "vpsllvq_ymm", $ymm, $ymm, $ymm);
+gen_n3("vpsllvq", "vpsllvq_zmm", $zmm, $zmm, $zmm);

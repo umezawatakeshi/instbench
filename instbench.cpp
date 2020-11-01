@@ -156,6 +156,15 @@ int main(int argc, char **argv)
 	BENCH3(vpternlogq_xmm);
 	BENCH3(vpternlogq_ymm);
 	BENCH3(vpternlogq_zmm);
+	BENCH1(vpsllq_xmm_imm);
+	BENCH1(vpsllq_ymm_imm);
+	BENCH1(vpsllq_zmm_imm);
+	BENCH2(vpsllq_xmm_xmm);
+	BENCH2(vpsllq_ymm_xmm);
+	BENCH2(vpsllq_zmm_xmm);
+	BENCH2(vpsllvq_xmm);
+	BENCH2(vpsllvq_ymm);
+	BENCH2(vpsllvq_zmm);
 
 	return 0;
 }
