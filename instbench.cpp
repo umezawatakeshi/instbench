@@ -165,6 +165,18 @@ int main(int argc, char **argv)
 	BENCH2(vpsllvq_xmm);
 	BENCH2(vpsllvq_ymm);
 	BENCH2(vpsllvq_zmm);
+	BENCH2(vpackuswb_xmm);
+	BENCH2(vpackuswb_ymm);
+	BENCH2(vpackuswb_zmm);
+	BENCH2(vpunpcklbw_xmm);
+	BENCH2(vpunpcklbw_ymm);
+	BENCH2(vpunpcklbw_zmm);
+	BENCH2(vpunpcklqdq_xmm);
+	BENCH2(vpunpcklqdq_ymm);
+	BENCH2(vpunpcklqdq_zmm);
+	BENCH2(vpshufb_xmm);
+	BENCH2(vpshufb_ymm);
+	BENCH2(vpshufb_zmm);
 
 	return 0;
 }
