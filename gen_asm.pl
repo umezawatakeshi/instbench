@@ -258,6 +258,10 @@ sub genm_d3_k($$$$$$) {
 	genx_x3_k(1, "", @_);
 }
 
+sub genm_n3_k($$$$$$) {
+	genx_x3_k(0, "", @_);
+}
+
 sub genz_d3_k($$$$$$) {
 	genx_x3_k(1, 1, @_);
 }
@@ -352,9 +356,32 @@ genz_n2_k("vmovdqu64", "vmovdqu64_maskz_ymm", $ymm, $ymm, 0);
 genz_n2_k("vmovdqu64", "vmovdqu64_maskz_zmm", $zmm, $zmm, 0);
 gen_d2("paddb", "paddb_xmm", $xmm, $xmm);
 gen_n3("vpaddb", "vpaddb_xmm", $xmm, $xmm, $xmm);
+gen_n3("vpaddb", "vpaddb_zmm", $zmm, $zmm, $zmm);
+gen_n3("vpaddq", "vpaddq_xmm", $xmm, $xmm, $xmm);
+gen_n3("vpaddq", "vpaddq_zmm", $zmm, $zmm, $zmm);
+genm_d3_k("vpaddb", "vpaddb_mask_xmm", $xmm, $xmm, $xmm, 0);
+genm_d3_k("vpaddb", "vpaddb_mask_zmm", $zmm, $zmm, $zmm, 0);
+genm_d3_k("vpaddq", "vpaddq_mask_xmm", $xmm, $xmm, $xmm, 0);
+genm_d3_k("vpaddq", "vpaddq_mask_zmm", $zmm, $zmm, $zmm, 0);
+genz_n3_k("vpaddb", "vpaddb_maskz_xmm", $xmm, $xmm, $xmm, 0);
+genz_n3_k("vpaddb", "vpaddb_maskz_zmm", $zmm, $zmm, $zmm, 0);
+genz_n3_k("vpaddq", "vpaddq_maskz_xmm", $xmm, $xmm, $xmm, 0);
+genz_n3_k("vpaddq", "vpaddq_maskz_zmm", $zmm, $zmm, $zmm, 0);
 gen_n2("pmovzxbw", "pmovzxbw_xmm", $xmm, $xmm);
 gen_n2("vpmovzxbw", "vpmovzxbw_ymm", $ymm, $xmm);
 gen_n4("vpblendvb", "vpblendvb_xmm", $xmm, $xmm, $xmm, $xmm);
+gen_n3("vpblendmb", "vpblendmb_xmm", $xmm, $xmm, $xmm);
+gen_n3("vpblendmb", "vpblendmb_zmm", $zmm, $zmm, $zmm);
+gen_n3("vpblendmq", "vpblendmq_xmm", $xmm, $xmm, $xmm);
+gen_n3("vpblendmq", "vpblendmq_zmm", $zmm, $zmm, $zmm);
+genm_n3_k("vpblendmb", "vpblendmb_mask_xmm", $xmm, $xmm, $xmm, 0);
+genm_n3_k("vpblendmb", "vpblendmb_mask_zmm", $zmm, $zmm, $zmm, 0);
+genm_n3_k("vpblendmq", "vpblendmq_mask_xmm", $xmm, $xmm, $xmm, 0);
+genm_n3_k("vpblendmq", "vpblendmq_mask_zmm", $zmm, $zmm, $zmm, 0);
+genz_n3_k("vpblendmb", "vpblendmb_maskz_xmm", $xmm, $xmm, $xmm, 0);
+genz_n3_k("vpblendmb", "vpblendmb_maskz_zmm", $zmm, $zmm, $zmm, 0);
+genz_n3_k("vpblendmq", "vpblendmq_maskz_xmm", $xmm, $xmm, $xmm, 0);
+genz_n3_k("vpblendmq", "vpblendmq_maskz_zmm", $zmm, $zmm, $zmm, 0);
 gen_n3_c3("pext", "pext_all0", $r64, $r64, $r64, "0x0000000000000000");
 gen_n3_c3("pext", "pext_all1", $r64, $r64, $r64, "0xffffffffffffffff");
 gen_n3_c3("pext", "pext_half", $r64, $r64, $r64, "0x5555555555555555");
