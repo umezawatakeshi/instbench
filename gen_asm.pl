@@ -90,109 +90,180 @@ my $zmm = gen_regs("zmm");
 # gen_n3_c3 genz_n2_k
 # m : AVX-512 において、merging-masking を使う
 # z : AVX-512 において、zeroing-masking を使う
-# d : dst レジスタに依存関係が発生する命令。 add など
+# d : dst レジスタに依存関係が発生する命令。 add や merging-masking を指定した命令
 # n : dst レジスタに依存関係が発生しない命令。ほぼすべての vex prefix 命令や PMOVZXxx など
-# 3 : オペランドが3つ
-# c3 : 3番目のオペランドに定数を指定（BSR や PEXT など値によって速度が変わる命令で使う）
+# 3 : オペランドが3つ（masking に使う k レジスタは数えない）
+# c3 : 3番目のオペランドに定数を指定（BSR や PEXT など値によって速度が変わることが予想される命令で使う）
 # i3 : 3番目のオペランドに即値を指定
 # k : masking に使う k レジスタに定数を指定
 #
 # 生成されるC++関数の命名規則は以下の通り
 # add_r64_tp
 # tp : スループット計測
-# lt1 : 最初の依存関係オペランドからのレイテンシ
-# lt2 : 2番目の依存関係オペランドからのレイテンシ
+# lt1 : 最初のオペランドからのレイテンシ
+# lt2 : 2番目のペランドからのレイテンシ
 
 
-################ gen_d2 ################
+################ gen_x2 ################
+
+sub gen_x2 {
+	my($d, $inst, $label, $o1, $o2) = @_;
+
+	gen("$label\_tp", 10, join("\n", map { "$inst $o1->[$_], $o2->[-1]" } 0..9));
+	gen("$label\_lt1", 1, "$inst $o1->[0], $o2->[-1]") if $d;
+	gen("$label\_lt2", 10, join("\n", map { "$inst $o1->[($_+1)%10], $o2->[$_]" } 0..9));
+}
 
 sub gen_d2($$$$) {
-	my($inst, $label, $o1, $o2) = @_;
-
-	gen("$_[1]_tp", 10, join("\n", map { "$inst $o1->[$_], $o2->[-1]" } 0..9));
-	gen("$_[1]_lt1", 1, "$inst $o1->[0], $o2->[-1]");
-	gen("$_[1]_lt2", 10, join("\n", map { "$inst $o1->[($_+1)%10], $o2->[$_]" } 0..9));
+	gen_x2(1, @_);
 }
-
-################ gen_d3 ################
-
-sub gen_d3($$$$$) {
-	my($inst, $label, $o1, $o2, $o3) = @_;
-
-	gen("$_[1]_tp", 10, join("\n", map { "$inst $o1->[$_], $o2->[-2], $o3->[-1]" } 0..9));
-	gen("$_[1]_lt1", 1, "$inst $o1->[0], $o2->[-2], $o3->[-1]");
-	gen("$_[1]_lt2", 10, join("\n", map { "$inst $o1->[($_+1)%10], $o2->[$_], $o3->[-1]" } 0..9));
-	gen("$_[1]_lt3", 10, join("\n", map { "$inst $o1->[($_+1)%10], $o2->[-1], $o3->[$_]" } 0..9));
-}
-
-################ gen_n2 ################
 
 sub gen_n2($$$$) {
-	my($inst, $label, $o1, $o2) = @_;
-
-	gen("$_[1]_tp", 1, "$inst $o1->[0], $o2->[-1]");
-	gen("$_[1]_lt1", 1, "$inst $o1->[0], $o2->[0]");
+	gen_x2(0, @_);
 }
 
-################ gen_n3 ################
+################ gen_x3 ################
+
+sub gen_x3 {
+	my($d, $inst, $label, $o1, $o2, $o3) = @_;
+
+	gen("$label\_tp", 10, join("\n", map { "$inst $o1->[$_], $o2->[-2], $o3->[-1]" } 0..9));
+	gen("$label\_lt1", 1, "$inst $o1->[0], $o2->[-2], $o3->[-1]") if $d;
+	gen("$label\_lt2", 10, join("\n", map { "$inst $o1->[($_+1)%10], $o2->[$_], $o3->[-1]" } 0..9));
+	gen("$label\_lt3", 10, join("\n", map { "$inst $o1->[($_+1)%10], $o2->[-1], $o3->[$_]" } 0..9));
+}
+
+sub gen_d3($$$$$) {
+	gen_x3(1, @_);
+}
 
 sub gen_n3($$$$$) {
-	my($inst, $label, $o1, $o2, $o3) = @_;
-
-	gen("$_[1]_tp", 1, "$inst $o1->[0], $o2->[-2], $o3->[-1]");
-	gen("$_[1]_lt1", 1, "$inst $o1->[0], $o2->[0], $o3->[-1]");
-	gen("$_[1]_lt2", 1, "$inst $o1->[0], $o2->[-1], $o3->[0]");
+	gen_x3(0, @_);
 }
 
-################ gen_n4 ################
+################ gen_x4 ################
+
+sub gen_x4 {
+	my($d, $inst, $label, $o1, $o2, $o3, $o4) = @_;
+
+	gen("$label\_tp", 10, join("\n", map { "$inst $o1->[$_], $o2->[-2], $o3->[-1], $o4->[-1]" } 0..9));
+	gen("$label\_lt1", 1, "$inst $o1->[0], $o2->[-2], $o3->[-1], $o4->[-1]") if $d;
+	gen("$label\_lt2", 10, join("\n", map { "$inst $o1->[($_+1)%10], $o2->[$_], $o3->[-1], $o4->[-1]" } 0..9));
+	gen("$label\_lt3", 10, join("\n", map { "$inst $o1->[($_+1)%10], $o2->[-1], $o3->[$_], $o4->[-1]" } 0..9));
+	gen("$label\_lt4", 10, join("\n", map { "$inst $o1->[($_+1)%10], $o2->[-1], $o3->[-1], $o4->[$_]" } 0..9));
+}
+
+sub gen_d4($$$$$$) {
+	gen_x4(1, @_);
+}
 
 sub gen_n4($$$$$$) {
-	my($inst, $label, $o1, $o2, $o3, $o4) = @_;
-
-	gen("$_[1]_tp", 1, "$inst $o1->[0], $o2->[-3], $o3->[-2], $o4->[-1]");
-	gen("$_[1]_lt1", 1, "$inst $o1->[0], $o2->[0], $o3->[-2], $o4->[-1]");
-	gen("$_[1]_lt2", 1, "$inst $o1->[0], $o2->[-2], $o3->[0], $o4->[-1]");
-	gen("$_[1]_lt3", 1, "$inst $o1->[0], $o2->[-2], $o3->[-1], $o4->[0]");
+	gen_x4(0, @_);
 }
 
-################ gen_n3_c3 ################
+################ gen_x3_c3 ################
 
-sub gen_n3_c3($$$$$$) {
-	my($inst, $label, $o1, $o2, $o3, $c3) = @_;
+sub gen_x3_c3 {
+	my($d, $inst, $label, $o1, $o2, $o3, $c3) = @_;
 
 	my $pre = "mov $o3->[-1], $c3";
-	gen("$_[1]_tp", 1, "$inst $o1->[0], $o2->[-2], $o3->[-1]", $pre);
-	gen("$_[1]_lt1", 1, "$inst $o1->[0], $o2->[0], $o3->[-1]", $pre);
+	gen("$label\_tp", 10, join("\n", map { "$inst $o1->[$_], $o2->[-2], $o3->[-1]" } 0..9));
+	gen("$label\_lt1", 1, "$inst $o1->[0], $o2->[-2], $o3->[-1]") if $d;
+	gen("$label\_lt2", 10, join("\n", map { "$inst $o1->[($_+1)%10], $o2->[$_], $o3->[-1]" } 0..9));
 }
 
-################ gen_d4_i4 ################
-
-sub gen_d4_i4($$$$$$) {
-	my($inst, $label, $o1, $o2, $o3, $i4) = @_;
-
-	gen("$_[1]_tp", 10, join("\n", map { "$inst $o1->[$_], $o2->[-2], $o3->[-1], $i4" } 0..9));
-	gen("$_[1]_lt1", 1, "$inst $o1->[0], $o2->[-2], $o3->[-1], $i4");
-	gen("$_[1]_lt2", 10, join("\n", map { "$inst $o1->[($_+1)%10], $o2->[$_], $o3->[-1], $i4" } 0..9));
-	gen("$_[1]_lt3", 10, join("\n", map { "$inst $o1->[($_+1)%10], $o2->[-1], $o3->[$_], $i4" } 0..9));
+sub gen_d3_c3($$$$$$) {
+	gen_x3_c3(1, @_);
 }
 
-################ gen_n3_i3 ################
+sub gen_n3_c3($$$$$$) {
+	gen_x3_c3(0, @_);
+}
+
+################ gen_x3_i3 ################
+
+sub gen_x3_i3 {
+	my($d, $inst, $label, $o1, $o2, $i3) = @_;
+
+	gen("$label\_tp", 10, join("\n", map { "$inst $o1->[$_], $o2->[-2], $i3" } 0..9));
+	gen("$label\_lt1", 1, "$inst $o1->[0], $o2->[-2], $i3") if $d;
+	gen("$label\_lt2", 10, join("\n", map { "$inst $o1->[($_+1)%10], $o2->[$_], $i3" } 0..9));
+}
+
+sub gen_d3_i3($$$$$) {
+	gen_x3_i3(1, @_);
+}
 
 sub gen_n3_i3($$$$$) {
-	my($inst, $label, $o1, $o2, $i3) = @_;
-
-	gen("$_[1]_tp", 10, join("\n", map { "$inst $o1->[$_], $o2->[-2], $i3" } 0..9));
-	gen("$_[1]_lt1", 10, join("\n", map { "$inst $o1->[($_+1)%10], $o2->[$_], $i3" } 0..9));
+	gen_x3_i3(0, @_);
 }
 
-################ genz_n2_k ################
+################ gen_x4_i4 ################
 
-sub genz_n2_k($$$$$) {
-	my($inst, $label, $o1, $o2, $k) = @_;
+sub gen_x4_i4 {
+	my($d, $inst, $label, $o1, $o2, $o3, $i4) = @_;
+
+	gen("$label\_tp", 10, join("\n", map { "$inst $o1->[$_], $o2->[-2], $o3->[-1], $i4" } 0..9));
+	gen("$label\_lt1", 1, "$inst $o1->[0], $o2->[-2], $o3->[-1], $i4") if $d;
+	gen("$label\_lt2", 10, join("\n", map { "$inst $o1->[($_+1)%10], $o2->[$_], $o3->[-1], $i4" } 0..9));
+	gen("$label\_lt3", 10, join("\n", map { "$inst $o1->[($_+1)%10], $o2->[-1], $o3->[$_], $i4" } 0..9));
+}
+
+sub gen_d4_i4($$$$$$) {
+	gen_x4_i4(1, @_);
+}
+
+sub gen_n4_i4($$$$$$) {
+	gen_x4_i4(0, @_);
+}
+
+################ genx_x2_k ################
+
+sub genx_x2_k {
+	my($d, $z, $inst, $label, $o1, $o2, $k) = @_;
 
 	my $pre = "mov rax, $k \n kmovq k7, rax";
-	gen("$_[1]_tp", 1, "$inst $o1->[0]\%{k7}%{z}, $o2->[-1]", $pre);
-	gen("$_[1]_lt1", 1, "$inst $o1->[0]\%{k7}%{z}, $o2->[0]", $pre);
+	$z = '%{z}' if $z;
+	gen("$label\_tp", 10, join("\n", map { "$inst $o1->[$_]\%{k7}$z, $o2->[-1]" } 0..9));
+	gen("$label\_lt1", 1, "$inst $o1->[0]\%{k7}$z, $o2->[-1]") if $d;
+	gen("$label\_lt2", 10, join("\n", map { "$inst $o1->[($_+1)%10]\%{k7}$z, $o2->[$_]" } 0..9));
+}
+
+sub genm_d2_k($$$$$) {
+	genx_x2_k(1, "", @_);
+}
+
+sub genz_d2_k($$$$$) {
+	genx_x2_k(1, 1, @_);
+}
+
+sub genz_n2_k($$$$$) {
+	genx_x2_k(0, 1, @_);
+}
+
+################ genx_x3_k ################
+
+sub genx_x3_k {
+	my($d, $z, $inst, $label, $o1, $o2, $o3, $k) = @_;
+
+	my $pre = "mov rax, $k \n kmovq k7, rax";
+	$z = '%{z}' if $z;
+	gen("$label\_tp", 10, join("\n", map { "$inst $o1->[$_]\%{k7}$z, $o2->[-1], $o3->[-1]" } 0..9));
+	gen("$label\_lt1", 1, "$inst $o1->[0]\%{k7}$z, $o2->[-1], $o3->[-1]") if $d;
+	gen("$label\_lt2", 10, join("\n", map { "$inst $o1->[($_+1)%10]\%{k7}$z, $o2->[$_], $o3->[-1]" } 0..9));
+	gen("$label\_lt3", 10, join("\n", map { "$inst $o1->[($_+1)%10]\%{k7}$z, $o2->[-1], $o3->[$_]" } 0..9));
+}
+
+sub genm_d3_k($$$$$$) {
+	genx_x3_k(1, "", @_);
+}
+
+sub genz_d3_k($$$$$$) {
+	genx_x3_k(1, 1, @_);
+}
+
+sub genz_n3_k($$$$$$) {
+	genx_x3_k(0, 1, @_);
 }
 
 ################ genm_vpgather_k0 ################
@@ -201,10 +272,10 @@ sub genm_vpgather_k0($$$$) {
 	my($inst, $label, $o1, $o2) = @_;
 
 	my $pre = "mov rax, 0 \n" . join("\n", map { "kmovq k$_, rax" } 1..5);
-	gen("$_[1]_tp", 5, join("\n", map { "$inst $o1->[$_]\%{k$_}, \[rax + $o2->[-1]]" } 1..5), $pre);
-	gen("$_[1]_lt1", 5, join("\n", map { "$inst $o1->[0]\%{k$_}, \[rax + $o2->[-1]]" } 1..5), $pre);
-	gen("$_[1]_lt2", 5, join("\n", map { "$inst $o1->[$_]\%{k1}, \[rax + $o2->[-1]]" } 1..5), $pre);
-	gen("$_[1]_lt3", 5, join("\n", map { "$inst $o1->[$_%5+1]\%{k$_}, \[rax + $o2->[$_]]" } 1..5), $pre);
+	gen("$label\_tp", 5, join("\n", map { "$inst $o1->[$_]\%{k$_}, \[rax + $o2->[-1]]" } 1..5), $pre);
+	gen("$label\_lt1", 5, join("\n", map { "$inst $o1->[0]\%{k$_}, \[rax + $o2->[-1]]" } 1..5), $pre);
+	gen("$label\_lt2", 5, join("\n", map { "$inst $o1->[$_]\%{k1}, \[rax + $o2->[-1]]" } 1..5), $pre);
+	gen("$label\_lt3", 5, join("\n", map { "$inst $o1->[$_%5+1]\%{k$_}, \[rax + $o2->[$_]]" } 1..5), $pre);
 }
 
 ################ genm_vpgather_k ################
@@ -219,10 +290,10 @@ sub genm_vpgather_k($$$$$$) {
 	}
 EOCXX
 	my $pre = "mov rbx, $k \n kmovq k7, rbx \n" . join("\n", map { "vmovdqu32 $o1->[$_], \[rax]" } 1..5);
-	gen("$_[1]_tp", 5, join("\n", map { "kmovd k$_, k7 \n $inst $o1->[$_]\%{k$_}, \[rax + $o2->[-1]]" } 1..5), $pre, $precxx);
-	gen("$_[1]_lt1", 5, join("\n", map { "kmovd k$_, k7 \n $inst $o1->[0]\%{k$_}, \[rax + $o2->[-1]]" } 1..5), $pre, $precxx);
-	gen("$_[1]_lt2", 5, join("\n", map { "kmovd k1, k7 \n $inst $o1->[$_]\%{k1}, \[rax + $o2->[-1]]" } 1..5), $pre, $precxx);
-	gen("$_[1]_lt3", 5, join("\n", map { "kmovd k$_, k7 \n $inst $o1->[$_%5+1]\%{k$_}, \[rax + $o2->[$_]]" } 1..5), $pre, $precxx);
+	gen("$label\_tp", 5, join("\n", map { "kmovd k$_, k7 \n $inst $o1->[$_]\%{k$_}, \[rax + $o2->[-1]]" } 1..5), $pre, $precxx);
+	gen("$label\_lt1", 5, join("\n", map { "kmovd k$_, k7 \n $inst $o1->[0]\%{k$_}, \[rax + $o2->[-1]]" } 1..5), $pre, $precxx);
+	gen("$label\_lt2", 5, join("\n", map { "kmovd k1, k7 \n $inst $o1->[$_]\%{k1}, \[rax + $o2->[-1]]" } 1..5), $pre, $precxx);
+	gen("$label\_lt3", 5, join("\n", map { "kmovd k$_, k7 \n $inst $o1->[$_%5+1]\%{k$_}, \[rax + $o2->[$_]]" } 1..5), $pre, $precxx);
 }
 
 ################ genm_vpscatter_k ################
@@ -237,7 +308,7 @@ sub genm_vpscatter_k($$$$$$) {
 	}
 EOCXX
 	my $pre = "mov rbx, $k \n kmovq k7, rbx \n vmovdqu32 $o1->[-1], \[rax]";
-	gen("$_[1]_tp", 1, "kmovd k1, k7 \n $inst \[rax + $o1->[-1]]\%{k1}, $o2->[-2]", $pre, $precxx);
+	gen("$label\_tp", 1, "kmovd k1, k7 \n $inst \[rax + $o1->[-1]]\%{k1}, $o2->[-2]", $pre, $precxx);
 }
 
 ################################
