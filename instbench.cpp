@@ -223,6 +223,10 @@ int main(int argc, char **argv)
 	BENCH_D3(vpermi2w_zmm);
 	BENCH_D3(vpermi2d_zmm);
 	BENCH_D3(vpermi2q_zmm);
+	BENCH_D3(vpermt2b_mask_zmm);
+	BENCH_D3(vpermt2q_mask_zmm);
+	BENCH_D3(vpermt2b_maskz_zmm);
+	BENCH_D3(vpermt2q_maskz_zmm);
 	BENCH_N2(vpcompressb_xmm_all0);
 	BENCH_N2(vpcompressb_zmm_all0);
 	BENCH_N2(vpcompressb_xmm_all1);
@@ -248,6 +252,11 @@ int main(int argc, char **argv)
 	BENCH_N3(vpmaddwd_xmm);
 	BENCH_N3(vpmaddwd_ymm);
 	BENCH_N3(vpmaddwd_zmm);
+	BENCH_D3(vpmaddwd_mask_zmm);
+	BENCH_N3(vpmaddwd_maskz_zmm);
+	BENCH_N3(vpmaddubsw_zmm);
+	BENCH_D3(vpmaddubsw_mask_zmm);
+	BENCH_N3(vpmaddubsw_maskz_zmm);
 	BENCH_N3(vpmultishiftqb_xmm);
 	BENCH_N3(vpmultishiftqb_ymm);
 	BENCH_N3(vpmultishiftqb_zmm);
