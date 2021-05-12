@@ -296,6 +296,14 @@ int main(int argc, char **argv)
 	BENCH_N3(vpshufb_xmm);
 	BENCH_N3(vpshufb_ymm);
 	BENCH_N3(vpshufb_zmm);
+	BENCH_D1(movd_roundtrip);
+	BENCH_D1(movq_roundtrip);
+	BENCH_D1(kmovb_roundtrip);
+	BENCH_D1(kmovq_roundtrip);
+	BENCH_D1(vpmovm2b_xmm_roundtrip);
+	BENCH_D1(vpmovm2b_zmm_roundtrip);
+	BENCH_D1(vpmovm2q_xmm_roundtrip);
+	BENCH_D1(vpmovm2q_zmm_roundtrip);
 
 	return 0;
 }

@@ -81,10 +81,12 @@ sub gen_regs($) {
 }
 
 my $r64 = [ "rax", "rbx", "rdx", "rsi", "rdi", "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15" ];
+my $r32 = [ "eax", "ebx", "edx", "esi", "edi", "r8d", "r9d", "r10d", "r11d", "r12d", "r13d", "r14d", "r15d" ];
 my $xmm = gen_regs("xmm");
 my $ymm = gen_regs("ymm");
 my $zmm = gen_regs("zmm");
-
+my $k5 = [ "k0", "k1", "k2", "k3", "k4", "k0", "k1", "k2", "k3", "k4", "k5", "k6", "k7" ];
+my $k8 = [ "k0", "k1", "k2", "k3", "k4", "k5", "k6", "k7" ];
 
 # 生成するperl関数の命名規則は以下の通り
 # gen_n3_c3 genz_n2_k
@@ -315,6 +317,15 @@ EOCXX
 	gen("$label\_tp", 1, "kmovd k1, k7 \n $inst \[rax + $o1->[-1]]\%{k1}, $o2->[-2]", $pre, $precxx);
 }
 
+################ gen_kmov_roundtrip ################
+
+sub gen_mov_roundtrip {
+	my($inst_12, $inst_21, $label, $o1, $o2) = @_;
+
+	gen("$label\_tp", 8, join("\n", map { "$inst_12 $o2->[$_], $o1->[$_] \n $inst_21 $o1->[$_], $o2->[$_]" } 0..7));
+	gen("$label\_lt1", 1, "$inst_12 $o2->[0], $o1->[0] \n $inst_21 $o1->[0], $o2->[0]");
+}
+
 ################################
 
 gen_d2("add", "add_r64", $r64, $r64);
@@ -474,3 +485,11 @@ gen_n3("vpunpcklqdq", "vpunpcklqdq_zmm", $zmm, $zmm, $zmm);
 gen_n3("vpshufb", "vpshufb_xmm", $xmm, $xmm, $xmm);
 gen_n3("vpshufb", "vpshufb_ymm", $ymm, $ymm, $ymm);
 gen_n3("vpshufb", "vpshufb_zmm", $zmm, $zmm, $zmm);
+gen_mov_roundtrip("movd", "movd", "movd_roundtrip", $r32, $xmm);
+gen_mov_roundtrip("movq", "movq", "movq_roundtrip", $r64, $xmm);
+gen_mov_roundtrip("kmovb", "kmovb", "kmovb_roundtrip", $k8, $r32);
+gen_mov_roundtrip("kmovq", "kmovq", "kmovq_roundtrip", $k8, $r64);
+gen_mov_roundtrip("vpmovm2b", "vpmovb2m", "vpmovm2b_xmm_roundtrip", $k8, $xmm);
+gen_mov_roundtrip("vpmovm2b", "vpmovb2m", "vpmovm2b_zmm_roundtrip", $k8, $zmm);
+gen_mov_roundtrip("vpmovm2q", "vpmovq2m", "vpmovm2q_xmm_roundtrip", $k8, $xmm);
+gen_mov_roundtrip("vpmovm2q", "vpmovq2m", "vpmovm2q_zmm_roundtrip", $k8, $zmm);
