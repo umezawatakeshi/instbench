@@ -189,6 +189,18 @@ int main(int argc, char **argv)
 	BENCH_N3(vpaddb_maskz_zmm);
 	BENCH_N3(vpaddq_maskz_xmm);
 	BENCH_N3(vpaddq_maskz_zmm);
+	BENCH_N3(vaddps_xmm);
+	BENCH_N3(vaddps_zmm);
+	BENCH_N3(vaddpd_xmm);
+	BENCH_N3(vaddpd_zmm);
+	BENCH_D3(vaddps_mask_xmm);
+	BENCH_D3(vaddps_mask_zmm);
+	BENCH_D3(vaddpd_mask_xmm);
+	BENCH_D3(vaddpd_mask_zmm);
+	BENCH_N3(vaddps_maskz_xmm);
+	BENCH_N3(vaddps_maskz_zmm);
+	BENCH_N3(vaddpd_maskz_xmm);
+	BENCH_N3(vaddpd_maskz_zmm);
 	BENCH_N2(pmovzxbw_xmm);
 	BENCH_N2(vpmovzxbw_ymm);
 	BENCH_N4(vpblendvb_xmm);
