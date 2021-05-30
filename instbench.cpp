@@ -284,6 +284,12 @@ int main(int argc, char **argv)
 	BENCH_N3(vpsllvq_xmm);
 	BENCH_N3(vpsllvq_ymm);
 	BENCH_N3(vpsllvq_zmm);
+	BENCH_N3(vpshldq_xmm);
+	BENCH_N3(vpshldq_ymm);
+	BENCH_N3(vpshldq_zmm);
+	BENCH_D3(vpshldvq_xmm);
+	BENCH_D3(vpshldvq_ymm);
+	BENCH_D3(vpshldvq_zmm);
 	BENCH_N3(vpackuswb_xmm);
 	BENCH_N3(vpackuswb_ymm);
 	BENCH_N3(vpackuswb_zmm);
